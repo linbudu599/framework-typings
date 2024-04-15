@@ -81,7 +81,7 @@ type TransformHandlerResult<
     }
 >;
 
-class Factory<AppStruct = {}> {
+export class App<AppStruct = {}> {
   constructor() {}
 
   public post<
@@ -104,8 +104,8 @@ class Factory<AppStruct = {}> {
     path: TPath,
     handler: HandlerDefinition,
     schema: TSchema
-  ): Factory<TParsedStruct> {
-    return this as Factory<TParsedStruct>;
+  ): App<TParsedStruct> {
+    return this as App<TParsedStruct>;
   }
 
   public listen(port: number) {
@@ -113,45 +113,6 @@ class Factory<AppStruct = {}> {
   }
 }
 
-const server = new Factory()
-  .post(
-    '/user/profile',
-    ({ body, error }) => {
-      if (body.age < 18) return error(400, 'Oh no');
-
-      if (body.name === 'Nagisa') return error(418);
-
-      if (body.age === 25) return error(599);
-
-      return body;
-    },
-    t.Object({
-      name: t.String(),
-      age: t.Number(),
-    })
-  )
-  .listen(80);
-
-function init<Struct extends Factory>(domain: string) {
-  return {} as Struct extends Factory<infer T> ? T : never;
+export function init<Struct extends App>(domain: string) {
+  return {} as Struct extends App<infer T> ? T : never;
 }
-
-const serverApi = init<typeof server>('localhost');
-
-const res = await serverApi.user.profile.post({
-  name: 'saltyaom',
-  age: '21',
-});
-
-if (res.error) {
-  switch (res.error.status) {
-    case 400:
-      throw res.error.value;
-    case 418:
-      throw res.error.value;
-    case 599:
-      throw res.error.value;
-  }
-}
-
-res.data.name.toString();

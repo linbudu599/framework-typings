@@ -29,6 +29,6 @@ export type PickByValueType<T, ValueType> = {
   [K in keyof T as T[K] extends ValueType ? K : never]: T[K];
 };
 
-declare function findUnique<SelectFields extends UserSelectConstraint>(
+export declare function findUnique<SelectFields extends UserSelectConstraint>(
   params: FindUniqueParams<SelectFields>
 ): ObjectIntersection<User, PickByValueType<SelectFields, true>> | undefined;

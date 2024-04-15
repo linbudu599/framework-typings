@@ -3,15 +3,15 @@ import { z } from 'zod';
 type InferType<T> = T extends z.ZodType<infer U> ? U : T;
 
 export class Pipeline<InferredInputType = any, InferredOutputType = any> {
-  input<InputType extends any>(
+  input<InputType extends any, ParsedInputType = InferType<InputType>>(
     input: InputType
-  ): Omit<Pipeline<InferType<InputType>, InferredOutputType>, 'input'> {
+  ): Omit<Pipeline<ParsedInputType, InferredOutputType>, 'input'> {
     return this as any;
   }
 
-  ouput<OuputType>(
+  ouput<OuputType extends any, ParsedOuputType = InferType<OuputType>>(
     input: OuputType
-  ): Omit<Pipeline<InferredInputType, InferType<OuputType>>, 'output'> {
+  ): Omit<Pipeline<InferredInputType, ParsedOuputType>, 'output'> {
     return this as any;
   }
 
