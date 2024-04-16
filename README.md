@@ -30,4 +30,4 @@ result1?.name; // x
 
 - [框架中的类型编程：tRPC & Prisma 中的泛型应用](https://linbudu.gitbook.io/spaces/typescript-in-deep/kuang-jia-zhong-de-lei-xing-bian-cheng-trpc-prisma-zhong-de-fan-xing-ying-yong)
 - [框架中的类型编程： Hono 中的模板字符串类型编程](https://linbudu.gitbook.io/spaces/typescript-in-deep/kuang-jia-zhong-de-lei-xing-bian-cheng-hono-zhong-de-mo-ban-zi-fu-chuan-lei-xing-bian-cheng)
-- wip 框架中的类型编程：Elysia 中的链式调用
+- [框架中的类型编程：Elysia 中的链式调用与错误处理](https://linbudu.gitbook.io/spaces/typescript-in-deep/kuang-jia-zhong-de-lei-xing-bian-cheng-san-elysiajs-de-lian-shi-tiao-yong-yu-cuo-wu-chu-li)
