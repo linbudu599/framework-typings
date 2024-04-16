@@ -2,7 +2,7 @@ import { t } from 'elysia';
 import { App, init } from './Elysia';
 
 const app = new App()
-  .post(
+  .patch(
     '/user/profile',
     ({ body, error }) => {
       if (body.age < 18) return error(400, 'Oh no');
@@ -22,7 +22,7 @@ const app = new App()
 
 const server = init<typeof app>('localhost');
 
-const res = await server.user.profile.post({
+const res = await server.user.profile.patch({
   name: 'saltyaom',
   age: '21', // x
 });
@@ -38,4 +38,4 @@ if (res.error) {
   }
 }
 
-res.data.name.toString();
+res.data.name.toString(); // √

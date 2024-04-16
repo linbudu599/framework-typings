@@ -1,15 +1,19 @@
 import { t } from 'elysia';
 
 type Simplify<T> = {
-  [K in keyof T]: T[K] extends object ? Simplify<T[K]> : T[K];
+  [K in keyof T]: T[K] extends object
+    ? T[K] extends Function
+      ? T[K]
+      : Simplify<T[K]>
+    : T[K];
 } & {};
 
 type UnwrapSchemaType<T extends ReturnType<typeof t.Object>> = Simplify<
   T['static']
 >;
 
-type Handler<InferredSchema> = (input: {
-  body: InferredSchema;
+type HandlerStruct<UnwrappedSchema> = (input: {
+  body: UnwrappedSchema;
   error: DefineError;
 }) => unknown;
 
@@ -26,13 +30,13 @@ type WithError<TErrorCodes extends number, TMessage extends string> = {
 
 type FallbackError<Code extends number> = `HTTP Error ${Code}`;
 
-type GetBuiltInError<Code extends number> = Code extends keyof BuiltInErrorMap
+type BuildErrorMessage<Code extends number> = Code extends keyof BuiltInErrorMap
   ? BuiltInErrorMap[Code]
   : FallbackError<Code>;
 
 type DefineError = <
-  const Code extends number,
-  const Message extends string = GetBuiltInError<Code>
+  Code extends number,
+  Message extends string = BuildErrorMessage<Code>
 >(
   errorCode: Code,
   message?: Message
@@ -45,16 +49,12 @@ type ParsePathAsTuple<T extends string> =
     ? [Param]
     : [];
 
-type ComposeObject<TFirst extends string, Nesting extends any> = {
-  [K in TFirst]: Nesting;
-};
-
 type ComposeObjectFromTuple<
   T extends string[],
   DeepestStruct extends object = {}
 > = T extends [infer First, ...infer Rest]
   ? First extends string
-    ? ComposeObject<
+    ? Record<
         First,
         Rest extends string[]
           ? Rest['length'] extends 0
@@ -68,44 +68,41 @@ type ComposeObjectFromTuple<
 type ExtractErrors<Input> = Input extends { error: infer T } ? T : never;
 
 type TransformHandlerResult<
-  InferredSchema,
-  HandlerDefinition extends ReturnType<Handler<InferredSchema>>
+  UnwrappedSchema,
+  HandlerReturns extends ReturnType<HandlerStruct<UnwrappedSchema>>
 > = Promise<
   | {
-      data: InferredSchema;
+      data: UnwrappedSchema;
       error: null;
     }
   | {
       data: null;
-      error: ExtractErrors<HandlerDefinition>;
+      error: ExtractErrors<HandlerReturns>;
     }
 >;
 
 export class App<AppStruct = {}> {
   constructor() {}
 
-  public post<
-    TPath extends string,
-    HandlerDefinition extends Handler<InferredSchema>,
-    TSchema extends ReturnType<typeof t.Object>,
-    InferredSchema = UnwrapSchemaType<TSchema>,
-    TParsedStruct = ComposeObjectFromTuple<
-      ParsePathAsTuple<TPath>,
+  public patch<
+    Path extends string,
+    Handler extends HandlerStruct<UnwrappedSchema>,
+    Schema extends ReturnType<typeof t.Object>,
+    UnwrappedSchema = UnwrapSchemaType<Schema>,
+    AdditionalStruct = ComposeObjectFromTuple<
+      ParsePathAsTuple<Path>,
       {
-        post: (
-          body: InferredSchema
-        ) => TransformHandlerResult<
-          InferredSchema,
-          ReturnType<HandlerDefinition>
-        >;
+        patch: (
+          body: UnwrappedSchema
+        ) => TransformHandlerResult<UnwrappedSchema, ReturnType<Handler>>;
       }
     >
   >(
-    path: TPath,
-    handler: HandlerDefinition,
-    schema: TSchema
-  ): App<TParsedStruct> {
-    return this as App<TParsedStruct>;
+    path: Path,
+    handler: Handler,
+    schema: Schema
+  ): App<AdditionalStruct & AppStruct> {
+    return this;
   }
 
   public listen(port: number) {
